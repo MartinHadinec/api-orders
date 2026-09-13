@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Console logging everywhere. In addition, outside the "container" profile, one file per day
+  in logs/ (logs/2026-09-13.log). The current day's file already carries the date,
+  which Spring Boot's default logging.file.name configuration cannot do.
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <springProperty name="LOG_DIR" source="logging.dir" defaultValue="logs"/>
+
+    <appender name="DAILY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>${FILE_LOG_CHARSET}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- containers log to stdout only, files inside a container would be lost on restart -->
+    <springProfile name="!container">
+        <root level="INFO">
+            <appender-ref ref="DAILY_FILE"/>
+        </root>
+    </springProfile>
+</configuration>
