@@ -1,0 +1,47 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 003-create-order-items
+      author: dev
+      comment: Order items, 1:N
+      changes:
+        - createTable:
+            tableName: order_items
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_order_items_order
+                    references: orders(id)
+              - column:
+                  name: tenant_id
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: order_items
+            indexName: idx_order_items_order
+            columns:
+              - column:
+                  name: order_id
+      rollback:
+        - dropTable:
+            tableName: order_items

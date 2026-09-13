@@ -1,0 +1,20 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 002-index-orders-tenant
+      author: dev
+      comment: tenant_id first in the index, every query starts with it thanks to @TenantId
+      changes:
+        - createIndex:
+            tableName: orders
+            indexName: idx_orders_tenant
+            columns:
+              - column:
+                  name: tenant_id
+              - column:
+                  name: created_at
+                  descending: true
+      rollback:
+        - dropIndex:
+            tableName: orders
+            indexName: idx_orders_tenant
