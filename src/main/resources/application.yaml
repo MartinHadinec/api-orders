@@ -1,3 +1,57 @@
 spring:
   application:
     name: api-orders
+
+  # API messages (validation errors) are always English, independent of the JVM locale
+  # and of the client Accept-Language header
+  web:
+    locale: en
+    locale-resolver: fixed
+
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 50
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer   # payload is pre-serialized JSON from the outbox
+      acks: all
+      properties:
+        enable.idempotence: true
+
+server:
+  shutdown: graceful
+
+logging:
+  # appenders are defined in logback-spring.xml (console + one file per day in logs/)
+  # SQL logging is off by default: the outbox publisher polls every 500 ms and would flood the log.
+  # To inspect queries temporarily, run with:
+  #   --logging.level.org.hibernate.SQL=debug --logging.level.org.hibernate.orm.jdbc.bind=trace
+  level:
+    org.hibernate.SQL: info
+    org.hibernate.orm.jdbc.bind: info
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# Transactional outbox publisher (see docs 008)
+outbox:
+  publish-interval: 500ms
+  batch-size: 100
